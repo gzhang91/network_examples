@@ -17,7 +17,7 @@
 /*
 本类主要用于libevent中HTTP客户端的封装
 使用方法：
-1. http_client运行之后会创建两个线程
+1. http_client运行之后会创建一个线程
 2. 需要保证主线程不要退出，退出的时候一定要调用http_client.close()方法(建议按照http_client_test.cpp文件使用方法使用)
 
 主要解决的问题：
@@ -25,9 +25,8 @@
 2. libevent使用异步模式，不能同步发送请求接收响应
 
 类的功能：
-1. worker线程用于请求代理，可以包装请求，用户只需要传入少量参数，定制需求
-2. loop线程用于处理IO，请求和响应都只能走loop线程，这方面就需要请求和响应都不能耗时而阻塞别的请求
-3. 具有一个缓存队列，用于worker线程和loop线程通信，采用socketpair或者event_active来激活loop线程
+1. loop线程用于处理IO，请求和响应都只能走loop线程，这方面就需要请求和响应都不能耗时而阻塞别的请求
+2. 具有一个缓存队列，外界任务线程将任务投递进去，采用socketpair或者event_active来激活loop线程
 
 后期新增功能：
 1. 增加对每个request可以定制不同的cb
