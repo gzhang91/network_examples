@@ -1,1 +1,2 @@
 g++ -g -o http_test http_client.cpp http_client_test.cpp -levent -levent_core -levent_openssl -levent_pthreads -lpthread
+valgrind --tool=memcheck --leak-check=full ./http_test 

@@ -99,6 +99,7 @@ private:
 
 	// requst-->requst_id 用于区分从应用那边过来的request标记
 	static std::map<struct evhttp_request*, int> request_info_;
+	static std::map<struct evhttp_request*, struct evhttp_connection *> request_conn_;
 };
 
 

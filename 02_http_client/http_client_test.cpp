@@ -23,18 +23,21 @@ int main() {
 
 	int cnt = 1;
 	while (1) {
-		clt->addRequst(cnt++, "http://127.0.0.1/test", std::map<std::string, std::string>(), "");
-		clt->addRequst(cnt++, "http://127.0.0.1/", std::map<std::string, std::string>(), "");
-		clt->addRequst(cnt++, "http://127.0.0.1/", std::map<std::string, std::string>(), "");
-		clt->addRequst(cnt++, "http://127.0.0.1/", std::map<std::string, std::string>(), "");
+		//clt->addRequst(cnt++, "http://127.0.0.1/test", std::map<std::string, std::string>(), "");
+		//clt->addRequst(cnt++, "http://127.0.0.1/", std::map<std::string, std::string>(), "");
+		//clt->addRequst(cnt++, "http://127.0.0.1/", std::map<std::string, std::string>(), "");
+		//clt->addRequst(cnt++, "http://127.0.0.1/", std::map<std::string, std::string>(), "");
+		clt->addRequst(cnt++, "http://www.baidu.com", std::map<std::string, std::string>(), "");
 		sleep(1);
 
-		if (cnt == 20) {
+		break;
+		if (cnt >= 10) {
 			break;
 		}
 	}
 
 	clt->close();
+	delete clt;
 
 	return 0;
 }

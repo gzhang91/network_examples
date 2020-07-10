@@ -7,6 +7,7 @@ namespace lib {
 
 Callback HttpClient::main_cb_ = nullptr;
 std::map<struct evhttp_request*, int> HttpClient::request_info_;
+std::map<struct evhttp_request*, struct evhttp_connection *> HttpClient::request_conn_;
 
 HttpClient::HttpClient() {
 	base_ = nullptr;
@@ -83,7 +84,6 @@ void HttpClient::httpRequestDone(struct evhttp_request *req, void *ctx) {
 		buffer_info.append(buffer);
 	}
 
-
 	std::map<struct evhttp_request*, int>::iterator it = request_info_.find(req);
 	if (it == request_info_.end()) {
 		// -1代表错误
@@ -92,10 +92,9 @@ void HttpClient::httpRequestDone(struct evhttp_request *req, void *ctx) {
 		main_cb_(it->second, std::map<std::string, std::string>(), buffer_info);
 	}
 
-	// fixed me, release there ?
-	struct evhttp_connection *evcon = evhttp_request_get_connection(req);
-	if (evcon) {
-		evhttp_connection_free(evcon);
+	std::map<struct evhttp_request*, struct evhttp_connection *>::iterator it_conn = request_conn_.find(req);
+	if (it_conn != request_conn_.end()) {
+		evhttp_connection_free(it_conn->second);
 	}
 }
 
@@ -129,16 +128,19 @@ bool HttpClient::addRequst(int req_id,
 		printf("url must have a host");
 		return false;
 	}
+	printf("host: %s\n", host);
 
 	port = evhttp_uri_get_port(http_uri);
 	if (port == -1) {
 		port = (strcasecmp(scheme, "http") == 0) ? 80 : 443;
 	}
+	printf("port: %d\n", port);
 
 	path = evhttp_uri_get_path(http_uri);
 	if (strlen(path) == 0) {
 		path = "/";
 	}
+	printf("path: %s\n", path);
 
 	query = evhttp_uri_get_query(http_uri);
 	if (query == NULL) {
@@ -147,6 +149,7 @@ bool HttpClient::addRequst(int req_id,
 		snprintf(uri, sizeof(uri) - 1, "%s?%s", path, query);
 	}
 	uri[sizeof(uri) - 1] = '\0';
+	printf("uri: %s\n", uri);
 	
 	if (strcasecmp(scheme, "http") == 0) {
 		is_http = true;
@@ -212,6 +215,7 @@ bool HttpClient::sendRequest(RequestPtr request) {
 	struct evhttp_request *http_req = evhttp_request_new(httpRequestDone, bev);
 	if (http_req == NULL) {
 		fprintf(stderr, "evhttp_request_new() failed\n");
+		evhttp_connection_free(evcon);
 		return false;
 	}
 
@@ -225,14 +229,16 @@ bool HttpClient::sendRequest(RequestPtr request) {
 	}
 
 	request_info_.insert(std::make_pair(http_req, req->req_id));
+	request_conn_.insert(std::make_pair(http_req, evcon));
 
 	int r = evhttp_make_request(evcon, http_req, 
 		req->body.empty() == false ? EVHTTP_REQ_POST : EVHTTP_REQ_GET, req->url.c_str());
 	if (r != 0) {
 		fprintf(stderr, "evhttp_make_request() failed\n");
+		evhttp_connection_free(evcon);
 		return false;
 	}	
-	
+
 	return true;
 }
 
