@@ -14,6 +14,12 @@ HttpClient::HttpClient() {
 	main_cb_ = nullptr;
 }
 
+HttpClient::~HttpClient() {
+	if (base_) {
+		event_base_free(base_);
+	}
+}
+
 bool HttpClient::start() {
 	evthread_use_pthreads();
 
@@ -84,6 +90,12 @@ void HttpClient::httpRequestDone(struct evhttp_request *req, void *ctx) {
 		main_cb_(-1, std::map<std::string, std::string>(), "");
 	} else {
 		main_cb_(it->second, std::map<std::string, std::string>(), buffer_info);
+	}
+
+	// fixed me, release there ?
+	struct evhttp_connection *evcon = evhttp_request_get_connection(req);
+	if (evcon) {
+		evhttp_connection_free(evcon);
 	}
 }
 

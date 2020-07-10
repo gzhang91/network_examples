@@ -53,6 +53,8 @@ class HttpClient {
 
 public:
 	HttpClient();
+	~HttpClient();
+
 	bool start();
 	void close();
 
