@@ -1,0 +1,7 @@
+符合reactor模式的poll程序
+1. 读写都先放入缓冲区
+2. 注册POLLIN和POLLOUT事件
+3. 监听端口8888
+
+gcc poller -o poller
+./poller
